@@ -12,7 +12,7 @@ class Walker(VectoredSprite):
     Walker sprite
     """
 
-    def __init__(self, pos: Vector, size: Vector, platforms, *groups):
+    def __init__(self, pos: Vector, size: Vector, platforms, *groups, gravity=config.GRAVITY):
         """
         Initialize walker sprited
         """
@@ -20,6 +20,8 @@ class Walker(VectoredSprite):
                                      *groups)
 
         self.speed = Vector()
+
+        self.gravity = gravity
 
         self.platforms = platforms
 
@@ -48,8 +50,8 @@ class Walker(VectoredSprite):
         self.pos += self.speed * self.dt
 
         # Apply gravity
-        self.speed.y += config.GRAVITY * self.dt
-        self.pos.y += (config.GRAVITY * self.dt ** 2) / 2
+        self.speed.y += self.gravity * self.dt
+        self.pos.y += (self.gravity * self.dt ** 2) / 2
 
         # Apply edges
 
@@ -100,7 +102,6 @@ class Player(Walker):
 
         self.image.fill(color)
 
-        self.speed = Vector(100, -500)
         self.direction = 1
 
         self.keys = keys
@@ -130,7 +131,8 @@ class Player(Walker):
         if pressed[self.keys['SHOOT']] and self.shoot_from <= time():
             self.groups()[0].add(
                 Bullet(self.platforms,
-                       self.topleft if self.direction == -1 else self.topright + config.BULLET_SIZE,
+                       self.topleft if self.direction == -1
+                       else self.topright + config.BULLET_SIZE,
                        self.direction,
                        self.groups()[1]))
             self.shoot_from = time() + config.SHOOT_COOLDOWN
@@ -147,7 +149,8 @@ class Bullet(Walker):
         """
         Initialize bullet
         """
-        super(Bullet, self).__init__(pos, config.BULLET_SIZE, platforms)
+        super(Bullet, self).__init__(pos, config.BULLET_SIZE,
+                                     platforms, gravity=config.BULLET_GRAVITY)
 
         self.players = players
 
