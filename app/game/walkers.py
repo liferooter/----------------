@@ -12,7 +12,12 @@ class Walker(VectoredSprite):
     Walker sprite
     """
 
-    def __init__(self, pos: Vector, size: Vector, platforms, *groups, gravity=config.GRAVITY):
+    def __init__(self,
+                 pos: Vector,
+                 size: Vector,
+                 platforms,
+                 *groups,
+                 gravity=config.GRAVITY):
         """
         Initialize walker sprited
         """
