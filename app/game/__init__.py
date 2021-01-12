@@ -64,7 +64,11 @@ class Game(object):
 
             self.surface.blit(self.bg, (0, 0))
 
-            self.update()
+            if len(self.players) > 1:
+                self.update()
+            else:
+                pg.draw.circle(self.surface, list(self.players)[0].color,
+                               (config.GAME_SIZE / 2).tuple, 200)
 
             pg.display.flip()
             clock.tick(config.FPS)

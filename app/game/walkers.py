@@ -106,6 +106,7 @@ class Player(Walker):
                                      platforms, *groups)
 
         self.image.fill(color)
+        self.color = color
 
         self.direction = 1
 
