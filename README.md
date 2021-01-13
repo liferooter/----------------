@@ -1,5 +1,6 @@
 # Cuban Jumper
 Simple game written in Python & PyGame created by me from nothing-to-do in Cuba
+![Screenshot](https://github.com/liferooter/cubanjumper/raw/master/screenshot.png)
 
 ## How to run?
 Run module `app`:
