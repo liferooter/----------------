@@ -52,7 +52,7 @@ class Game(object):
         # },
         #     self.walkers, self.players)
 
-        self.bot1 = Bot(Vector2(500, 500),
+        self.bot1 = Bot(Vector2(1400, 750),
                         '#00FF00',
                         self.platforms,
                         self.walkers, self.players)

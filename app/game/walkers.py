@@ -70,26 +70,26 @@ class Walker(VectoredSprite):
         # Apply edges
 
         # Floor
-        if self.bottom >= config.GAME_SIZE.y:
+        if self.rect.bottom >= config.GAME_SIZE.y:
             self.on_land = True
             self.on_edge = True
             self.pos.y = config.GAME_SIZE.y - self.size.y
             self.speed.y = min(0, self.speed.y)
 
         # Ceil
-        if self.top <= 0:
+        if self.rect.top <= 0:
             self.on_edge = True
             self.pos.y = 0
             self.speed.y = max(0, self.speed.y)
 
         # Right
-        if self.right >= config.GAME_SIZE.x:
+        if self.rect.right >= config.GAME_SIZE.x:
             self.on_edge = True
             self.pos.x = config.GAME_SIZE.x - self.size.x
             self.speed.x = min(0, self.speed.x)
 
         # Left
-        if self.left <= 0:
+        if self.rect.left <= 0:
             self.on_edge = True
             self.pos.x = 0
             self.speed.x = max(0, self.speed.x)
@@ -99,13 +99,13 @@ class Walker(VectoredSprite):
             self, self.platforms, False)
 
         for platform in collided_platforms:
-            if platform.top < self.bottom \
+            if platform.rect.top < self.rect.bottom \
                 and self.speed.y >= 0 \
                     and not self.in_platform:
                 self.on_land = True
                 self.platform = platform
                 self.speed.y = min(0, self.speed.y)
-                self.pos.y = platform.top - self.size.y
+                self.pos.y = platform.rect.top - self.size.y
         self.in_platform = not len(collided_platforms) == 0
 
         # Stop if on land
@@ -186,8 +186,9 @@ class Player(Walker):
             return
         self.groups()[0].add(
             Bullet(self.platforms,
-                   self.topleft if self.direction == -1
-                   else self.topright + config.BULLET_SIZE,
+                   self.rect.topleft
+                   if self.direction == -1
+                   else self.rect.topright,
                    self.direction,
                    self.groups()[1]))
         self.shoot_from = time() + config.SHOOT_COOLDOWN
