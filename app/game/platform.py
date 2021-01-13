@@ -1,7 +1,7 @@
 import pygame as pg
+from pygame.math import Vector2
 
 from app import config
-from app.utils.types import Vector
 from app.game.sprite import VectoredSprite
 
 
@@ -10,12 +10,12 @@ class Platform(VectoredSprite):
     Platform sprite
     """
 
-    def __init__(self, pos: Vector, width: (float, int), *groups):
+    def __init__(self, pos: Vector2, width: (float, int), *groups):
         """
         Initialize Platform
         """
-        super(Platform, self).__init__(Vector(pos),
-                                       Vector(width, config.PLATFORM_HEIGHT),
+        super(Platform, self).__init__(Vector2(pos),
+                                       Vector2(width, config.PLATFORM_HEIGHT),
                                        *groups)
 
         self.image.fill(config.PLATFORM_BG)

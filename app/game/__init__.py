@@ -1,8 +1,8 @@
 import pygame as pg
+from pygame.math import Vector2
 
 from app import config
 from app.game.walkers import Player, Bot, Bullet
-from app.utils.types import Vector
 from app.utils.maps import import_map
 
 
@@ -13,7 +13,7 @@ class Game(object):
         """
         pg.init()
 
-        self.surface = pg.display.set_mode(config.GAME_SIZE)
+        self.surface = pg.display.set_mode(list(map(int, config.GAME_SIZE)))
 
         pg.display.set_caption(config.TITLE)
 
@@ -52,7 +52,7 @@ class Game(object):
         # },
         #     self.walkers, self.players)
 
-        self.bot1 = Bot(Vector(500, 500),
+        self.bot1 = Bot(Vector2(500, 500),
                         '#00FF00',
                         self.platforms,
                         self.walkers, self.players)
@@ -73,7 +73,7 @@ class Game(object):
                 self.update()
             else:
                 pg.draw.circle(self.surface, list(self.players)[0].color,
-                               (config.GAME_SIZE / 2).tuple, 200)
+                               (config.GAME_SIZE / 2), 200)
 
             pg.display.flip()
             clock.tick(config.FPS)

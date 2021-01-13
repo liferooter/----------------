@@ -1,10 +1,9 @@
 import pygame as pg
-
-from app.utils.types import Vector
+from pygame.math import Vector2
 
 
 class VectoredSprite(pg.sprite.Sprite):
-    def __init__(self, pos: Vector, size: Vector, *groups):
+    def __init__(self, pos: Vector2, size: Vector2, *groups):
         """
         Initialize VectoredSprite by its position, size and groups
         """
@@ -23,28 +22,28 @@ class VectoredSprite(pg.sprite.Sprite):
         return pg.sprite.Rect(*self.pos, *self.size)
 
     @property
-    def topleft(self) -> Vector:
+    def topleft(self) -> Vector2:
         """
         Get position of top left corner
         """
         return self.pos
 
     @property
-    def topright(self) -> Vector:
+    def topright(self) -> Vector2:
         """
         Get position of top right corner
         """
-        return self.pos + Vector(self.size.x, 0)
+        return self.pos + Vector2(self.size.x, 0)
 
     @property
-    def bottomleft(self) -> Vector:
+    def bottomleft(self) -> Vector2:
         """
         Get position of bottom left corner
         """
-        return self.pos + Vector(0, self.size.y)
+        return self.pos + Vector2(0, self.size.y)
 
     @property
-    def bottomright(self) -> Vector:
+    def bottomright(self) -> Vector2:
         """
         Get position of top left corner
         """

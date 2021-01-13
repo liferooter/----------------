@@ -1,20 +1,19 @@
 from math import pi
-
-from app.utils.types import Vector
+from pygame.math import Vector2
 
 TITLE = "Cuban Jumper"
 
 BG_COLOR = '#347AFD'
 
-PLAYER_SIZE = Vector(14, 20)
+PLAYER_SIZE = Vector2(14, 20)
 PLAYER_START = (
-    Vector(100, 50),
-    Vector(1400, 50)
+    Vector2(100, 50),
+    Vector2(1400, 50)
 )
 PLAYER_SPEED = 300
 PLAYER_JUMP = 700
 
-BULLET_SIZE = Vector(5, 5)
+BULLET_SIZE = Vector2(5, 5)
 BULLET_COLOR = '#000000'
 BULLET_SPEED = 1000
 BULLET_GRAVITY = 200
@@ -28,11 +27,11 @@ PLATFORM_HEIGHT = 15
 
 GRAVITY = 2000
 
-GAME_SIZE = Vector(1500, 800)
+GAME_SIZE = Vector2(1500, 800)
 
 UPDATE_TIMEOUT = 50
 
 FPS = 60
 
 MAP_FILE = "./maps/default.map"
-MAP_CELL = Vector(150, 80)
+MAP_CELL = Vector2(150, 80)

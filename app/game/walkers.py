@@ -1,10 +1,9 @@
 import pygame as pg
+from pygame.math import Vector2
 from time import time
 from math import sin, cos
-from collections import Sequence
 
 from app import config
-from app.utils.types import Vector
 from app.utils.functions import distance, sign
 from app.game.sprite import VectoredSprite
 
@@ -15,8 +14,8 @@ class Walker(VectoredSprite):
     """
 
     def __init__(self,
-                 pos: Vector,
-                 size: Vector,
+                 pos: Vector2,
+                 size: Vector2,
                  platforms,
                  *groups,
                  gravity=config.GRAVITY):
@@ -28,7 +27,7 @@ class Walker(VectoredSprite):
 
         self.platform = None
 
-        self.speed = Vector()
+        self.speed = Vector2()
 
         self.gravity = gravity
 
@@ -209,8 +208,8 @@ class Bot(Player):
         new_target = players[0]
         for player in players:
             if player is not self \
-                and abs(distance(self, player)) < \
-                    abs(distance(self, new_target)):
+                and distance(self, player).length() < \
+                    distance(self, new_target).length():
                 new_target = player
         self.target = new_target
         target_distance = distance(self, self.target)
@@ -256,11 +255,11 @@ class Bullet(Walker):
 
         self.image.fill(config.BULLET_COLOR)
 
-        self.speed = Vector(config.BULLET_SPEED
-                            * direction
-                            * cos(config.SHOOT_ANGLE),
-                            -config.BULLET_SPEED
-                            * sin(config.SHOOT_ANGLE))
+        self.speed = Vector2(config.BULLET_SPEED
+                             * direction
+                             * cos(config.SHOOT_ANGLE),
+                             -config.BULLET_SPEED
+                             * sin(config.SHOOT_ANGLE))
 
     def update(self):
         """
