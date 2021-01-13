@@ -213,8 +213,7 @@ class Bot(Player):
                 new_target = player
         self.target = new_target
         target_distance = distance(self, self.target)
-        if abs(target_distance.x) < config.GAME_SIZE.x / 2 \
-                and abs(target_distance.y) < config.GAME_SIZE.y / 2:
+        if target_distance.length() < config.GAME_SIZE.length() / 2:
             if target_distance.x < -config.PLAYER_SIZE.x * 5:
                 self.speed.x = config.PLAYER_SPEED
             elif target_distance.x > config.PLAYER_SIZE.x * 5:
