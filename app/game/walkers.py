@@ -214,16 +214,15 @@ class Bot(Player):
                 new_target = player
         self.target = new_target
         target_distance = distance(self, self.target)
-        if target_distance.length() < config.GAME_SIZE.length() / 2:
-            if target_distance.x < -config.PLAYER_SIZE.x * 5:
-                self.speed.x = config.PLAYER_SPEED
-            elif target_distance.x > config.PLAYER_SIZE.x * 5:
-                self.speed.x = -config.PLAYER_SPEED
+        if target_distance.x < -config.PLAYER_SIZE.x * 5:
+            self.speed.x = config.PLAYER_SPEED
+        elif target_distance.x > config.PLAYER_SIZE.x * 5:
+            self.speed.x = -config.PLAYER_SPEED
 
-            if (-config.PLAYER_SIZE.y / 2 > target_distance.y
-                or target_distance.y > config.PLAYER_SIZE.y / 2)\
-                    and self.on_land:
-                self.speed.y = -config.PLAYER_JUMP
+        if (-config.PLAYER_SIZE.y / 2 > target_distance.y
+            or target_distance.y > config.PLAYER_SIZE.y / 2)\
+                and self.on_land:
+            self.speed.y = -config.PLAYER_JUMP
 
         # Calculate direction
         if self.speed.x > 0:
