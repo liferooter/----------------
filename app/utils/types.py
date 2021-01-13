@@ -47,6 +47,9 @@ class Vector(object):
     def __len__(self):
         return 2
 
+    def __abs__(self):
+        return (self.x ** 2 + self.y ** 2) ** 0.5
+
     @property
     def tuple(self):
         return self.x, self.y

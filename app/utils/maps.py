@@ -1,5 +1,5 @@
 from app import config
-from app.utils.vector import Vector
+from app.utils.types import Vector
 from app.game.platform import Platform
 
 

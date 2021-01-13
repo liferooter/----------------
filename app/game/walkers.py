@@ -1,9 +1,11 @@
 import pygame as pg
 from time import time
 from math import sin, cos
+from collections import Sequence
 
 from app import config
-from app.utils.vector import Vector
+from app.utils.types import Vector
+from app.utils.functions import distance, sign
 from app.game.sprite import VectoredSprite
 
 
@@ -23,6 +25,8 @@ class Walker(VectoredSprite):
         """
         super(Walker, self).__init__(pos, size,
                                      *groups)
+
+        self.platform = None
 
         self.speed = Vector()
 
@@ -49,9 +53,13 @@ class Walker(VectoredSprite):
         """
         Update walker sprite
         """
+
+        self.before_update()
+
         self.update_dt()
 
         self.on_land = False
+        self.platform = None
 
         # Apply speed
         self.pos += self.speed * self.dt
@@ -96,6 +104,7 @@ class Walker(VectoredSprite):
                 and self.speed.y >= 0 \
                     and not self.in_platform:
                 self.on_land = True
+                self.platform = platform
                 self.speed.y = min(0, self.speed.y)
                 self.pos.y = platform.top - self.size.y
         self.in_platform = not len(collided_platforms) == 0
@@ -104,13 +113,25 @@ class Walker(VectoredSprite):
         if self.on_land:
             self.speed.x = 0
 
+        self.after_update()
+
+    def before_update(self):
+        """
+        Before update hook
+        """
+
+    def after_update(self):
+        """
+        After update hook
+        """
+
 
 class Player(Walker):
     """
     Player sprite
     """
 
-    def __init__(self, pos, color, platforms, keys, *groups):
+    def __init__(self, pos, color, platforms, keys={}, *groups):
         """
         Initialize Player sprite
         """
@@ -131,6 +152,15 @@ class Player(Walker):
         Update Player sprite
         """
 
+        super(Player, self).update()
+
+    def before_update(self):
+        self.handle_controls()
+
+    def handle_controls(self):
+        """
+        Handle player controls
+        """
         pressed = pg.key.get_pressed()
         if pressed[self.keys['UP']] and self.on_land:
             self.speed.y = min(
@@ -146,16 +176,68 @@ class Player(Walker):
         elif self.speed.x < 0:
             self.direction = -1
 
-        if pressed[self.keys['SHOOT']] and self.shoot_from <= time():
-            self.groups()[0].add(
-                Bullet(self.platforms,
-                       self.topleft if self.direction == -1
-                       else self.topright + config.BULLET_SIZE,
-                       self.direction,
-                       self.groups()[1]))
-            self.shoot_from = time() + config.SHOOT_COOLDOWN
+        if pressed[self.keys['SHOOT']]:
+            self.shoot()
 
-        super(Player, self).update()
+    def shoot(self):
+        """
+        Shoot action
+        """
+        if not self.shoot_from <= time():
+            return
+        self.groups()[0].add(
+            Bullet(self.platforms,
+                   self.topleft if self.direction == -1
+                   else self.topright + config.BULLET_SIZE,
+                   self.direction,
+                   self.groups()[1]))
+        self.shoot_from = time() + config.SHOOT_COOLDOWN
+
+
+class Bot(Player):
+    def __init__(self, pos, color, platforms, *groups):
+        super(Bot, self).__init__(pos, color, platforms, {}, *groups)
+
+        self.target = None
+
+    def handle_controls(self):
+        """
+        Run bot strategy
+        """
+        players = list(self.groups()[0])
+
+        new_target = players[0]
+        for player in players:
+            if player is not self \
+                and abs(distance(self, player)) < \
+                    abs(distance(self, new_target)):
+                new_target = player
+        self.target = new_target
+        target_distance = distance(self, self.target)
+        if abs(target_distance.x) < config.GAME_SIZE.x / 2 \
+                and abs(target_distance.y) < config.GAME_SIZE.y / 2:
+            if target_distance.x < -config.PLAYER_SIZE.x * 5:
+                self.speed.x = config.PLAYER_SPEED
+            elif target_distance.x > config.PLAYER_SIZE.x * 5:
+                self.speed.x = -config.PLAYER_SPEED
+
+            if (-config.PLAYER_SIZE.y / 2 > target_distance.y
+                or target_distance.y > config.PLAYER_SIZE.y / 2)\
+                    and self.on_land:
+                self.speed.y = -config.PLAYER_JUMP
+
+        # Calculate direction
+        if self.speed.x > 0:
+            self.direction = 1
+        elif self.speed.x < 0:
+            self.direction = -1
+
+        if abs(target_distance.y) < config.PLAYER_SIZE.y:
+            self.shoot()
+
+    @property
+    def state(self):
+        return self.states[-1]
 
 
 class Bullet(Walker):

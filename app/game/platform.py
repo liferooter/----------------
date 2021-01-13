@@ -1,7 +1,7 @@
 import pygame as pg
 
 from app import config
-from app.utils.vector import Vector
+from app.utils.types import Vector
 from app.game.sprite import VectoredSprite
 
 
@@ -18,4 +18,6 @@ class Platform(VectoredSprite):
                                        Vector(width, config.PLATFORM_HEIGHT),
                                        *groups)
 
-        self.image.fill(config.PLATFORM_COLOR)
+        self.image.fill(config.PLATFORM_BG)
+        pg.draw.rect(self.image, config.PLATFORM_BORDER,
+                     self.image.get_bounding_rect(), 1)

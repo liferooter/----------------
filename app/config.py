@@ -1,12 +1,11 @@
 from math import pi
 
-from app.utils.vector import Vector
+from app.utils.types import Vector
 
 TITLE = "Cuban Jumper"
 
-BG_COLOR = "#555555"
+BG_COLOR = '#347AFD'
 
-PLAYER_COLOR = "#FF0000"
 PLAYER_SIZE = Vector(14, 20)
 PLAYER_START = (
     Vector(100, 50),
@@ -16,14 +15,15 @@ PLAYER_SPEED = 300
 PLAYER_JUMP = 700
 
 BULLET_SIZE = Vector(5, 5)
-BULLET_COLOR = "#FFFF00"
+BULLET_COLOR = '#000000'
 BULLET_SPEED = 1000
 BULLET_GRAVITY = 200
 
 SHOOT_COOLDOWN = 0.7
 SHOOT_ANGLE = pi / 120
 
-PLATFORM_COLOR = "#00FF00"
+PLATFORM_BG = '#FF7700'
+PLATFORM_BORDER = '#000000'
 PLATFORM_HEIGHT = 15
 
 GRAVITY = 2000

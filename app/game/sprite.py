@@ -1,6 +1,6 @@
 import pygame as pg
 
-from app.utils.vector import Vector
+from app.utils.types import Vector
 
 
 class VectoredSprite(pg.sprite.Sprite):

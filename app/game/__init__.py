@@ -1,8 +1,8 @@
 import pygame as pg
 
 from app import config
-from app.game.walkers import Player, Bullet
-from app.utils.vector import Vector
+from app.game.walkers import Player, Bot, Bullet
+from app.utils.types import Vector
 from app.utils.maps import import_map
 
 
@@ -41,16 +41,21 @@ class Game(object):
         },
             self.walkers, self.players)
 
-        self.player2 = Player(config.PLAYER_START[1],
-                              '#0000FF',
-                              self.platforms,
-                              {
-                                  'RIGHT': pg.K_d,
-                                  'LEFT': pg.K_a,
-                                  'UP': pg.K_w,
-                                  'SHOOT': pg.K_s,
-        },
-            self.walkers, self.players)
+        # self.player2 = Player(config.PLAYER_START[1],
+        #                       '#0000FF',
+        #                       self.platforms,
+        #                       {
+        #                           'RIGHT': pg.K_d,
+        #                           'LEFT': pg.K_a,
+        #                           'UP': pg.K_w,
+        #                           'SHOOT': pg.K_s,
+        # },
+        #     self.walkers, self.players)
+
+        self.bot1 = Bot(Vector(500, 500),
+                        '#00FF00',
+                        self.platforms,
+                        self.walkers, self.players)
 
     def run(self) -> int:
         """

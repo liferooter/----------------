@@ -14,3 +14,8 @@ python -m app
 ## What about updates and development?
 
 I don't know if I'll develop this game.
+
+## How to play?
+
+Just read code and play :)
+Current version have no good menu and settings, so read code.
