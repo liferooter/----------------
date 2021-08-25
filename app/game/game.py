@@ -97,7 +97,11 @@ class Game(object):
 
         else:
             # Else draw big circle and set is_pending_quit to True
-            pg.draw.circle(self.surface, list(self.players)[0].color,
+            if len(self.players) == 1:
+                color = list(self.players)[0].color
+            else:
+                color = config.DRAW_COLOR
+            pg.draw.circle(self.surface, color,
                            (config.GAME_SIZE / 2), 200)
             self.is_pending_quit = True
 

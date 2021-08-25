@@ -19,5 +19,5 @@ class Platform(VectoredSprite):
                                        *groups)
 
         self.image.fill(config.PLATFORM_BG)
-        pg.draw.rect(self.image, config.PLATFORM_BORDER,
-                     self.image.get_bounding_rect(), 1)
+        pg.draw.rect(self.image, config.PLATFORM_BG,
+                     self.image.get_bounding_rect(), 0)

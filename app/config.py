@@ -2,16 +2,18 @@ from typing import Any
 from pygame.math import Vector2
 import pygame as pg
 
+from app.utils.maps import game_size
+
 TITLE: str = "Cuban Jumper"
 
-BG_COLOR: str = '#347AFD'
+BG_COLOR: str = '#FFDDDD'
 
 PLAYER_SIZE: Vector2 = Vector2(14, 20)
 
 PLAYERS: list[dict] = [
     {
-        'COLOR': '#0000FF',
-        'POSITION': Vector2(0, 0),
+        'COLOR': (0, 0, 255),
+        'POSITION': Vector2(0, 50),
         'SHORTCUTS': {
             'RIGHT': pg.K_d,
             'LEFT': pg.K_a,
@@ -21,7 +23,7 @@ PLAYERS: list[dict] = [
         }
     },
     {
-        'COLOR': '#FF0000',
+        'COLOR': (255, 0, 0),
         'POSITION': Vector2(1400, 50),
         'SHORTCUTS': {
             'RIGHT': pg.K_RIGHT,
@@ -32,8 +34,8 @@ PLAYERS: list[dict] = [
         }
     },
     {
-        'COLOR': '#00FF00',
-        'POSITION': Vector2(600, 750),
+        'COLOR': (0, 255, 0),
+        'POSITION': Vector2(600, 50),
         'SHORTCUTS': {
             'RIGHT': pg.K_j,
             'LEFT': pg.K_g,
@@ -53,31 +55,34 @@ PLAYER_JUMP: int = 700
 BULLET_SIZE: int = Vector2(5, 5)
 BULLET_COLOR: int = '#FFFF00'
 BULLET_SPEED: int = 1000
-BULLET_GRAVITY: int = 300
+BULLET_GRAVITY: int = 250
 
-BOMB_SIZE: int = Vector2(6, 6)
-BOMB_COLOR: int = '#000000'
-BOMB_SPEED: int = 100
-BOMB_GRAVITY: int = 500
+ROCKET_SIZE: int = Vector2(6, 6)
+ROCKET_COLOR: int = '#000000'
+ROCKET_SPEED: int = 400
+ROCKET_ROTATION: int = 360
 
 PARTICLE_SIZE: int = Vector2(4, 4)
-PARTICLE_COLOR: int = '#FF0000'
-PARTICLE_SPEED: int = 250
+PARTICLE_COLOR: int = '#AA9900'
+PARTICLE_SPEED: int = 400
 PARTICLE_GRAVITY: int = 500
 N_PARTICLES = 8
 
 SHOOT_COOLDOWN: float = 0.7
 # Shoot angle in degrees
-SHOOT_ANGLE: int = 2
+SHOOT_ANGLE: int = 3
 
-PLATFORM_BG: str = '#FF7700'
-PLATFORM_BORDER: str = '#000000'
-PLATFORM_HEIGHT: str = 15
+PLATFORM_BG: str = '#8888AA'
+PLATFORM_HEIGHT: int = 15
 
-GAME_SIZE: Vector2 = Vector2(1500, 800)
-
-UPS: int = 600
-UPDATES_PER_FRAME: int = 10
+UPS: int = 240
+UPDATES_PER_FRAME: int = 4
 
 MAP_FILE: str = "./maps/default.map"
 MAP_CELL: Vector2 = Vector2(150, 80)
+
+DRAW_COLOR: str = PLATFORM_BG
+
+# DO NOT EDIT!
+# IDK WHY THIS IS IN CONFIG
+GAME_SIZE: Vector2 = Vector2(game_size())

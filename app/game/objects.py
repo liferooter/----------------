@@ -2,18 +2,27 @@ import pygame as pg
 from pygame.math import Vector2
 
 from time import time
-from math import sin, cos, pi
+from math import sin, cos, pi, sqrt
 from random import random
+from enum import Enum, auto
 
 from app import config
 from app.utils.functions import distance, sign, collide_rect
 from app.game.sprite import VectoredSprite
 
 # Directions
+
 RIGHT = 1
 LEFT = -1
 UP = -1
 DOWN = 1
+
+class CollideDirection(Enum):
+    TOP = auto()
+    BOTTOM = auto()
+    LEFT = auto()
+    RIGHT = auto()
+    CENTER = auto()
 
 # Coordinates
 X = 0
@@ -41,27 +50,28 @@ class MaterialObject(VectoredSprite):
         self.game: "Game object" = game
 
         # Initialize object's speed
-        self.speed: Vector2 = Vector2()
+        self.speed: Vector2 = Vector2(0, 0)
+
+        # Track collide direction
+        self.collide_direction: CollideDirection = None
 
         # Save gravity value
         self.gravity: int = gravity
 
         # Initialize delta-time mechanizm
         self.last_tick: float = time()
+        self.dt = 0
 
         # Initialize some fields used by child classes
-        self.on_land: bool = False
         self.on_edge: bool = False
 
-    def calculate_dt(self) -> float:
+    def update_dt(self):
         """
         Update delta-time to apply tick
         """
         now: float = time()
-        dt: float = now - self.last_tick
+        self.dt: float = now - self.last_tick
         self.last_tick = now
-
-        return dt
 
     def update(self):
         """
@@ -69,49 +79,52 @@ class MaterialObject(VectoredSprite):
         """
         super().update()
 
-        dt: float = self.calculate_dt()
-
-        self.on_land = False
+        self.update_dt()
 
         # Initialize variables to look if X or Y delta can be applied
         x_can_move: bool = True
         y_can_move: bool = True
 
+        has_collision = False
+
         # Apply speed and gravity
         new_pos: Vector2 = Vector2(self.pos)
         new_speed: Vector2 = Vector2(self.speed)
 
-        new_pos += self.speed * dt
+        new_pos += self.speed * self.dt
 
-        new_speed.y += self.gravity * dt
-        new_pos.y += (self.gravity * dt ** 2) / 2
+        new_speed.y += self.gravity * self.dt
+        new_pos.y += (self.gravity * self.dt ** 2) / 2
 
         # Collide with edges
 
         # Floor
         if new_pos.y + self.size.y > config.GAME_SIZE.y:
             new_pos.y = config.GAME_SIZE.y - self.size.y
-            self.on_land = True
             self.on_edge = True
             y_can_move = False
+            has_collision = True
 
         # Ceil
         if new_pos.y < 0:
             new_pos.y = 0
             self.on_edge = True
             y_can_move = False
+            has_collision = True
 
         # Right
         if new_pos.x + self.size.x > config.GAME_SIZE.x:
             new_pos.x = config.GAME_SIZE.x - self.size.x
             self.on_edge = True
             x_can_move = False
+            has_collision = True
 
         # Left
         if new_pos.x < 0:
             new_pos.x = 0
             self.on_edge = True
             x_can_move = False
+            has_collision = True
 
         movement_direction: (int, int) = (
             sign(new_pos.x - self.pos.x),
@@ -126,17 +139,8 @@ class MaterialObject(VectoredSprite):
             if not (new_x_collide and new_y_collide):
                 continue
 
-            self.on_collide()
+            has_collision = True
 
-            if movement_direction[Y] == DOWN:
-                if old_x_collide:
-                    y_can_move = False
-                    self.on_land = True
-                    self.pos.y = platform.pos.y - self.size.y
-            if movement_direction[Y] == UP:
-                if old_x_collide:
-                    y_can_move = False
-                    self.pos.y = platform.pos.y + platform.size.y
             if movement_direction[X] == LEFT:
                 if old_y_collide:
                     x_can_move = False
@@ -145,6 +149,16 @@ class MaterialObject(VectoredSprite):
                 if old_y_collide:
                     x_can_move = False
                     self.pos.x = platform.pos.x - self.size.x
+            if movement_direction[Y] == DOWN:
+                if old_x_collide:
+                    y_can_move = False
+                    self.pos.y = platform.pos.y - self.size.y
+            if movement_direction[Y] == UP:
+                if old_x_collide:
+                    y_can_move = False
+                    self.pos.y = platform.pos.y + platform.size.y
+
+            self.on_collide()
 
         # Apply changes
         if not x_can_move:
@@ -159,9 +173,24 @@ class MaterialObject(VectoredSprite):
             self.speed.y = new_speed.y
             self.pos.y = new_pos.y
 
+        if not y_can_move and movement_direction[Y] == DOWN:
+            self.collide_direction = CollideDirection.BOTTOM
+        elif not y_can_move and movement_direction[Y] == UP:
+            self.collide_direction = CollideDirection.TOP
+        elif not x_can_move and movement_direction[X] == RIGHT:
+            self.collide_direction = CollideDirection.RIGHT
+        elif not x_can_move and movement_direction[X] == LEFT:
+            self.collide_direction = CollideDirection.LEFT
+        elif not has_collision:
+            self.collide_direction = None
+
         if self.on_land:
             self.speed.x = 0
             self.speed.y = 0
+
+    @property
+    def on_land(self):
+        return self.collide_direction == CollideDirection.BOTTOM
 
     def on_collide(self):
         pass
@@ -175,7 +204,7 @@ class Player(MaterialObject):
     def __init__(self,
                  game: "Game object",
                  pos: Vector2,
-                 color: str,
+                 color: (int, int, int),
                  shortcuts: dict[str, int]):
         """
         Initialize Player sprite
@@ -199,12 +228,14 @@ class Player(MaterialObject):
         # Initialize shoot timeout mechanizm
         self.shoot_from_time = 0
 
+        self.bombs = []
+
     def update(self):
         """
         Update Player sprite
         """
-        self.handle_controls()
         super().update()
+        self.handle_controls()
 
     def handle_controls(self):
         """
@@ -227,8 +258,8 @@ class Player(MaterialObject):
         if pressed[self.shortcuts['SHOOT']]:
             self.shoot()
 
-        if pressed[self.shortcuts['DROP']]:
-            self.drop_bomb()
+        if pressed[self.shortcuts['BOMB']]:
+            self.launch_rocket()
 
     def shoot(self):
         """
@@ -239,31 +270,39 @@ class Player(MaterialObject):
             return
         self.shoot_from_time = time() + config.SHOOT_COOLDOWN
 
-        Bullet(
+        self.bombs.append(Bullet(
             self.game,
             self
-        )
+        ))
 
-    def drop_bomb(self):
+    def launch_rocket(self):
         if not self.shoot_from_time <= time():
             return
         self.shoot_from_time = time() + config.SHOOT_COOLDOWN
 
-        Bomb(self.game,
-             Vector2(self.pos))
+        self.bombs.append(Rocket(
+            self.game,
+            self
+        ))
+
+    def kill(self):
+        super().kill()
+        while self.bombs:
+            self.bombs.pop().boom()
 
 
 class Projectile(MaterialObject):
 
     def __init__(self,
                  game: "Game object",
-                 color: str,
+                 color: (int, int, int),
                  pos: Vector2,
                  size: Vector2,
                  speed: Vector2,
                  gravity: int,
                  is_killing: bool,
-                 can_lie: bool):
+                 can_lie: bool,
+                 shooter: Player):
         super().__init__(game, pos, size, gravity)
 
         # Fill surface with color
@@ -278,6 +317,7 @@ class Projectile(MaterialObject):
         # Save whether can lie
         self.can_lie = can_lie
 
+        self.shooter = shooter
 
     def update(self):
         super().update()
@@ -287,8 +327,8 @@ class Projectile(MaterialObject):
         if self.on_land:
             self.when_on_land()
 
-        if self.is_killing:
-            pg.sprite.spritecollide(self, self.game.players, True)
+        for player in pg.sprite.spritecollide(self, self.game.players, False):
+            self.on_collide_player(player)
 
     def when_on_edge(self):
         if not self.can_lie:
@@ -299,17 +339,50 @@ class Projectile(MaterialObject):
             self.kill()
 
     def on_collide(self):
-        if self.can_lie:
+        if not self.can_lie:
             self.kill()
 
+    def on_collide_player(self, player: Player):
+        if self.is_killing and player != self.shooter:
+            player.kill()
 
-class Bullet(Projectile):
+
+class Bomb(Projectile):
+    def boom(self):
+        super().kill()
+        for i in range(config.N_PARTICLES):
+            FireParticle(self.game,
+                         self.pos + (
+                            Vector2(0, self.size.y)
+                                if self.collide_direction == CollideDirection.TOP else
+                            Vector2(0, -self.size.y)
+                                if self.collide_direction == CollideDirection.BOTTOM else
+                            Vector2(-self.size.x, 0)
+                                if self.collide_direction == CollideDirection.RIGHT else
+                            Vector2(self.size.x, 0)
+                                if self.collide_direction == CollideDirection.LEFT else
+                            Vector2(0)
+                         ),
+                         random() * pi
+                            if self.collide_direction == CollideDirection.BOTTOM else
+                         random() * pi + pi
+                            if self.collide_direction == CollideDirection.TOP else
+                         random() * pi + pi / 2
+                            if self.collide_direction == CollideDirection.RIGHT else
+                         random() * pi - pi / 2
+                            if self.collide_direction == CollideDirection.LEFT else
+                         random() * 2 * pi,
+                         self.shooter
+            )
+
+
+class Bullet(Bomb):
 
     def __init__(self,
                  game: "Game object",
                  shooter: Player):
         super().__init__(game,
-                         config.BULLET_COLOR,
+                         tuple(map(lambda x: x * 0.6, list(shooter.color))),
                          shooter.rect.topleft - Vector2(config.BULLET_SIZE.x + 1, 0)
                             if shooter.direction == LEFT
                             else shooter.rect.topright + Vector2(1, 0),
@@ -317,7 +390,11 @@ class Bullet(Projectile):
                          Vector2(config.BULLET_SPEED * shooter.direction, 0).rotate(config.SHOOT_ANGLE * -shooter.direction),
                          config.BULLET_GRAVITY,
                          True,
-                         False)
+                         False,
+                         shooter)
+
+    def kill(self):
+        self.boom()
 
 
 class FireParticle(Projectile):
@@ -328,7 +405,8 @@ class FireParticle(Projectile):
     def __init__(self,
                  game: "Game object",
                  pos: Vector2,
-                 angle: int):
+                 angle: int,
+                 shooter: Player):
         super().__init__(game,
                          config.PARTICLE_COLOR,
                          pos,
@@ -336,26 +414,55 @@ class FireParticle(Projectile):
                          Vector2(-config.PARTICLE_SPEED, 0).rotate_rad(angle),
                          config.PARTICLE_GRAVITY,
                          True,
-                         False)
+                         False,
+                         shooter)
 
-class Bomb(Projectile):
+class Rocket(Bomb):
 
     def __init__(self,
                  game: "Game object",
-                 pos: Vector2):
+                 shooter: Player):
         super().__init__(game,
-                         config.BOMB_COLOR,
-                         pos,
-                         config.BOMB_SIZE,
-                         Vector2(0, -config.BOMB_SPEED),
-                         config.BOMB_GRAVITY,
+                         config.ROCKET_COLOR,
+                         Vector2(shooter.pos),
+                         config.ROCKET_SIZE,
+                         Vector2(config.ROCKET_SPEED, 0),
+                         0,
                          False,
-                         True)
+                         False,
+                         shooter)
+        self.shooter: Player = shooter
 
-    def when_on_land(self):
+        self.speed.rotate_ip(self.speed.angle_to(self.get_target_direction()))
 
-        for i in range(config.N_PARTICLES):
-            FireParticle(self.game,
-                         self.pos - Vector2(0, self.size.y),
-                         random() * pi)
-        self.kill()
+    def get_target_direction(self):
+        min_distance: Vector2 = None
+        nearest_player: Player = None
+        for player in self.game.players:
+            if player == self.shooter:
+                continue
+            if nearest_player == None \
+                or min_distance.length() > distance(self, player).length():
+                min_distance = distance(player, self)
+                nearest_player = player
+
+        return min_distance
+
+    def update(self):
+        super().update()
+
+        angle: float = self.get_target_direction().angle_to(Vector2(1, 0)) \
+                            - self.speed.angle_to(Vector2(1, 0))
+        if 180 >= angle % 360 > 0:
+            self.image.fill((255, 0, 0))
+            self.speed.rotate_ip(-config.ROCKET_ROTATION * self.dt)
+        elif 180 < angle % 360:
+            self.image.fill((0, 0, 255))
+            self.speed.rotate_ip(config.ROCKET_ROTATION * self.dt)
+
+    def on_collide_player(self, player: Player):
+        if player != self.shooter:
+            self.kill()
+
+    def kill(self):
+        self.boom()
